@@ -26,20 +26,18 @@ var MapsLib = {
 
   //MODIFY the encrypted Table IDs of your Fusion Tables (found under File => About)
   //NOTE: numeric IDs will be depricated soon
-  fusionTableId:      "1WoxNIvjGQzQAk7B965hwVQOIl04f-Xn09JuTLu03", //Point data layer
-  
-  polygon1TableID:    "1ceippR4giBiF-pT9PE1YAUvebFp6_NKvYriccYo", //Outline map layer of CT town boundaries
-  polygon2TableID:    "1VopQGBhRKyyk25EIA5ptScvULxR68d43RhZ1ycM", //Thematic map layer of selected CT school districts
+  fusionTableId:      "15EhnJxPFnOoxZb576FCNMxEPTuB9V5hXnyPBq4EG", //Point data layer
+
 
   //*MODIFY Fusion Tables Requirement* API key. found at https://code.google.com/apis/console/
   //*Important* this key is for demonstration purposes. please register your own.
-  googleApiKey:       "AIzaSyDIevSvpV-ONb4Pf15VUtwyr_zZa7ccwq4",
+  googleApiKey:       "AIzaSyCypRgsHHyuPdp1ke04o1EqCZs1LPnRmws",
 
   //MODIFY name of the location column in your Fusion Table.
   //NOTE: if your location column name has spaces in it, surround it with single quotes
   //example: locationColumn:     "'my location'",
   //if your Fusion Table has two-column lat/lng data, see https://support.google.com/fusiontables/answer/175922
-  locationColumn:     "Lat",
+  locationColumn:     "shape",
 
   map_centroid:       new google.maps.LatLng(41.7682,-72.684), //center that your map defaults to
   locationScope:      "connecticut",      //geographical area appended to all address searches
@@ -82,23 +80,6 @@ var MapsLib = {
     MapsLib.searchrecords = null;
 
     // MODIFY if needed: defines background polygon1 and polygon2 layers
-    MapsLib.polygon1 = new google.maps.FusionTablesLayer({
-      query: {
-        from:   MapsLib.polygon1TableID,
-        select: "geometry"
-      },
-      styleId: 2,
-      templateId: 2
-    });
-
-    MapsLib.polygon2 = new google.maps.FusionTablesLayer({
-      query: {
-        from:   MapsLib.polygon2TableID,
-        select: "geometry"
-      },
-      styleId: 2,
-      templateId: 2
-    });
 
     //reset filters
     $("#search_address").val(MapsLib.convertToPlainString($.address.parameter('address')));
@@ -110,39 +91,16 @@ var MapsLib = {
     
     //-----custom initializers -- default setting to display Polygon1 layer
     
-    $("#rbPolygon1").attr("checked", "checked"); 
     
     //-----end of custom initializers-------
 
     //run the default search
-    MapsLib.doSearch();
-  },
-
-  doSearch: function(location) {
-    MapsLib.clearSearch();
-
-    // MODIFY if needed: shows background polygon layer depending on which checkbox is selected
-    if ($("#rbPolygon1").is(':checked')) {
-      MapsLib.polygon1.setMap(map);
-    }
-    else if ($("#rbPolygon2").is(':checked')) {
-      MapsLib.polygon2.setMap(map);
-    }
-
-    var address = $("#search_address").val();
-    MapsLib.searchRadius = $("#search_radius").val();
-
-    var whereClause = MapsLib.locationColumn + " not equal to ''";
+  
 
   //-----custom filters for point data layer
     //---MODIFY column header and values below to match your Google Fusion Table AND index.html
     //-- TEXTUAL OPTION to display legend and filter by non-numerical data in your table
-    var type_column = "'Program Type'";  // -- note use of single & double quotes for two-word column header
-    var tempWhereClause = [];
-    if ( $("#cbType1").is(':checked')) tempWhereClause.push("Interdistrict");
-    if ( $("#cbType2").is(':checked')) tempWhereClause.push("District");
-    if ( $("#cbType3").is(':checked')) tempWhereClause.push("MorePreK");
-    whereClause += " AND " + type_column + " IN ('" + tempWhereClause.join("','") + "')";
+  
 
     //-- NUMERICAL OPTION - to display and filter a column of numerical data in your table, use this instead
     /*    var type_column = "'TypeNum'";
@@ -211,18 +169,7 @@ var MapsLib = {
     MapsLib.getList(whereClause);
   },
   // MODIFY if you change the number of Polygon layers
-  clearSearch: function() {
-    if (MapsLib.searchrecords != null)
-      MapsLib.searchrecords.setMap(null);
-    if (MapsLib.polygon1 != null)
-      MapsLib.polygon1.setMap(null);
-    if (MapsLib.polygon2 != null)
-      MapsLib.polygon2.setMap(null);
-    if (MapsLib.addrMarker != null)
-      MapsLib.addrMarker.setMap(null);
-    if (MapsLib.searchRadiusCircle != null)
-      MapsLib.searchRadiusCircle.setMap(null);
-  },
+  
 
   findMe: function() {
     // Try W3C Geolocation (Preferred)
@@ -326,7 +273,7 @@ var MapsLib = {
   getList: function(whereClause) {
     // select specific columns from the fusion table to display in th list
     // NOTE: we'll be referencing these by their index (0 = School, 1 = GradeLevels, etc), so order matters!
-    var selectColumns = "School, GradeLevels, Address, City, State, Url, Manager, Gain_numeric, Gain_image";
+    var selectColumns = "name, slug, hidden, managed_by";
     MapsLib.query(selectColumns, whereClause,"", "", 500, "MapsLib.displayList");
   },
 
@@ -350,11 +297,10 @@ var MapsLib = {
       <table class='table' id ='list_table'>\
         <thead>\
           <tr>\
-            <th>School</th>\
-            <th>Grades&nbsp;&nbsp;</th>\
-            <th>Address</th>\
-            <th>Manager</th>\
-            <th>Gain</th>\
+            <th>Name</th>\
+            <th>Slug&nbsp;&nbsp;</th>\
+            <th>Hidden</th>\
+            <th>Managed By</th>\
           </tr>\
         </thead>\
         <tbody>";
